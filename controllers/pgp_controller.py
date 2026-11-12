@@ -1,54 +1,81 @@
 """
 CONTROLADOR (MVC) - Orquesta la peticion HTTP.
 
-Recibe los formularios, valida la entrada, llama al MODELO y entrega
-la respuesta a la VISTA (plantillas). No contiene logica de calculo.
+Flujo:
+  1. /validar  (POST, AJAX) -> guarda los 3 Excel bajo un token, corre los
+     puntos de control y devuelve el reporte en JSON.
+  2. /calcular (POST)       -> con el token de unos archivos ya validados,
+     ejecuta el MODELO y muestra la nota tecnica.
+No contiene logica de calculo ni de validacion; delega en el MODELO.
 """
+import re
 import uuid
 from pathlib import Path
 
 from flask import (
-    Blueprint, render_template, request, send_file, current_app, flash, redirect, url_for
+    Blueprint, render_template, request, send_file, current_app,
+    flash, redirect, url_for, jsonify
 )
 from werkzeug.utils import secure_filename
 
 from models.pgp_model import NotaTecnicaPGP, ErrorDatosPGP
+from models.validador_pgp import ValidadorPGP
 
 pgp_bp = Blueprint("pgp", __name__)
 
 EXTENSIONES_OK = {".xlsx", ".xls"}
+ARCHIVOS = ("afiliados", "rips", "tarifario")
+TOKEN_RE = re.compile(r"^[0-9a-f]{32}$")
 
 
-def _guardar(archivo, carpeta: Path) -> Path:
-    nombre = secure_filename(archivo.filename)
-    if Path(nombre).suffix.lower() not in EXTENSIONES_OK:
-        raise ErrorDatosPGP(f"'{nombre}' no es un Excel (.xlsx/.xls).")
-    destino = carpeta / f"{uuid.uuid4().hex}_{nombre}"
-    archivo.save(destino)
-    return destino
+def _es_excel(filename: str) -> bool:
+    return Path(secure_filename(filename)).suffix.lower() in EXTENSIONES_OK
 
 
 @pgp_bp.route("/")
 def index():
-    """VISTA: formulario de carga."""
+    """VISTA: formulario de carga con validacion por puntos de control."""
     return render_template("index.html")
+
+
+@pgp_bp.route("/validar", methods=["POST"])
+def validar():
+    """Guarda los 3 Excel bajo un token y devuelve el reporte de control (JSON)."""
+    for f in ARCHIVOS:
+        if f not in request.files or not request.files[f].filename:
+            return jsonify({"ok": False, "error": f"Falta cargar el archivo de '{f}'."}), 400
+        if not _es_excel(request.files[f].filename):
+            return jsonify({"ok": False, "error": f"'{request.files[f].filename}' no es un Excel (.xlsx/.xls)."}), 400
+
+    token = uuid.uuid4().hex
+    carpeta = Path(current_app.config["UPLOAD_DIR"]) / token
+    carpeta.mkdir(parents=True, exist_ok=True)
+    for f in ARCHIVOS:
+        request.files[f].save(carpeta / f"{f}.xlsx")
+
+    reporte = ValidadorPGP().validar(
+        carpeta / "afiliados.xlsx", carpeta / "rips.xlsx", carpeta / "tarifario.xlsx"
+    )
+    reporte["token"] = token
+    return jsonify(reporte)
+
+
+def _rutas_por_token(token: str):
+    if not token or not TOKEN_RE.match(token):
+        raise ErrorDatosPGP("Token de validacion invalido. Vuelve a cargar los archivos.")
+    carpeta = Path(current_app.config["UPLOAD_DIR"]) / token
+    rutas = [carpeta / f"{f}.xlsx" for f in ARCHIVOS]
+    if not all(p.exists() for p in rutas):
+        raise ErrorDatosPGP("Los archivos validados ya no estan disponibles. Vuelve a cargarlos.")
+    return rutas
 
 
 @pgp_bp.route("/calcular", methods=["POST"])
 def calcular():
-    """Recibe 3 Excel + parametros, ejecuta el MODELO y muestra la nota."""
-    uploads = Path(current_app.config["UPLOAD_DIR"])
+    """Con los archivos ya validados (token), ejecuta el MODELO y muestra la nota."""
     salida = Path(current_app.config["OUTPUT_DIR"])
-
     try:
-        req_files = ("afiliados", "rips", "tarifario")
-        for f in req_files:
-            if f not in request.files or not request.files[f].filename:
-                raise ErrorDatosPGP(f"Falta cargar el archivo de '{f}'.")
-
-        ruta_af = _guardar(request.files["afiliados"], uploads)
-        ruta_rips = _guardar(request.files["rips"], uploads)
-        ruta_tar = _guardar(request.files["tarifario"], uploads)
+        ruta_af, ruta_rips, ruta_tar = _rutas_por_token(request.form.get("token", ""))
 
         modelo = NotaTecnicaPGP(
             crecimiento_poblacion=float(request.form.get("crecimiento", 0.03)),
@@ -57,8 +84,7 @@ def calcular():
             periodo=request.form.get("periodo", "2027"),
         )
         resultado = modelo.calcular(ruta_af, ruta_rips, ruta_tar)
-        archivo_salida = salida / "nota_tecnica.xlsx"
-        modelo.exportar_excel(resultado, archivo_salida)
+        modelo.exportar_excel(resultado, salida / "nota_tecnica.xlsx")
 
         return render_template(
             "resultado.html",
@@ -70,7 +96,6 @@ def calcular():
             indicadores=resultado["indicadores"].to_dict(orient="records"),
             parametros=resultado["parametros"],
         )
-
     except ErrorDatosPGP as e:
         flash(str(e), "error")
         return redirect(url_for("pgp.index"))

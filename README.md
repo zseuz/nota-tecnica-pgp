@@ -19,16 +19,18 @@ El proyecto separa responsabilidades en las tres capas del patrón
 pgp_app/
 ├── app.py                        # Arranque: crea la app Flask y registra el controlador
 ├── models/
-│   └── pgp_model.py              # MODELO  -> lógica de negocio y cálculo (sin Flask)
+│   ├── pgp_model.py              # MODELO  -> lógica de negocio y cálculo (sin Flask)
+│   └── validador_pgp.py          # MODELO  -> puntos de control sobre los Excel
 ├── controllers/
 │   └── pgp_controller.py         # CONTROLADOR -> rutas HTTP, valida y orquesta
 ├── views/
 │   ├── templates/                # VISTA -> HTML (Jinja2)
 │   │   ├── base.html
-│   │   ├── index.html            #   formulario de carga
+│   │   ├── index.html            #   carga + puntos de control
 │   │   └── resultado.html        #   nota técnica
 │   └── static/
-│       └── estilo.css
+│       ├── estilo.css
+│       └── validacion.js         #   muestra los chequeos y habilita generar
 ├── uploads/                      # Excel cargados (temporal)
 ├── salida/                       # nota_tecnica.xlsx generado
 └── README.md
@@ -64,6 +66,26 @@ python app.py
 Abrir en el navegador: **http://127.0.0.1:5000**
 
 ---
+
+## Flujo de validación (puntos de control)
+
+Antes de generar la nota técnica, la app corre una secuencia de chequeos y solo
+habilita la generación si no hay errores:
+
+1. Cargas los tres Excel y pulsas **Validar archivos**.
+2. El cliente los envía a `POST /validar`, que los guarda bajo un token y corre
+   los puntos de control:
+   - Lectura de los archivos.
+   - Estructura de columnas.
+   - Valores numéricos (sin vacíos ni negativos).
+   - Sin llaves duplicadas.
+   - Cruce afiliados ↔ RIPS.
+   - Cruce RIPS ↔ tarifario.
+   - Coherencia de frecuencias (*advertencia*, no bloquea).
+3. Los chequeos se muestran uno a uno. Cada punto es **ok**, **advertencia** o **error**.
+4. Si todo pasa, aparece el botón **Generar nota técnica para entregar**, que
+   envía el token a `POST /calcular` (no hay que volver a subir los archivos).
+5. Si hay errores, se listan y la generación queda bloqueada hasta corregir.
 
 ## Formato de los Excel de entrada
 

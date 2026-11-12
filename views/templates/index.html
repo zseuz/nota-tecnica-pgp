@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block contenido %}
 <section class="tarjeta">
-  <h2>Cargar archivos</h2>
+  <h2>1 · Cargar archivos</h2>
   <p class="ayuda">Sube los tres Excel. Cada uno debe traer estas columnas:</p>
   <ul class="ayuda">
     <li><b>Afiliados:</b> grupo_etario, sexo, num_afiliados</li>
@@ -9,7 +9,7 @@
     <li><b>Tarifario:</b> cups, costo_unitario</li>
   </ul>
 
-  <form action="{{ url_for('pgp.calcular') }}" method="post" enctype="multipart/form-data">
+  <form id="form-validar">
     <label>Afiliados (.xlsx)
       <input type="file" name="afiliados" accept=".xlsx,.xls" required>
     </label>
@@ -36,7 +36,25 @@
       </label>
     </div>
 
-    <button type="submit">Calcular nota técnica</button>
+    <button type="submit" id="btn-validar">Validar archivos</button>
   </form>
 </section>
+
+<section class="tarjeta" id="panel-control" hidden>
+  <h2>2 · Puntos de control</h2>
+  <ul id="lista-control" class="control"></ul>
+  <div id="resumen-control"></div>
+
+  <!-- Solo se genera si la validacion pasa: envia el token de los archivos validados -->
+  <form id="form-generar" action="{{ url_for('pgp.calcular') }}" method="post" hidden>
+    <input type="hidden" name="token" id="token">
+    <input type="hidden" name="crecimiento" id="g-crecimiento">
+    <input type="hidden" name="ipc" id="g-ipc">
+    <input type="hidden" name="umbral" id="g-umbral">
+    <input type="hidden" name="periodo" id="g-periodo">
+    <button type="submit" class="boton-grande">✓ Generar nota técnica para entregar</button>
+  </form>
+</section>
+
+<script src="{{ url_for('static', filename='validacion.js') }}"></script>
 {% endblock %}

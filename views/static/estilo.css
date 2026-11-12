@@ -41,3 +41,16 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
 .banda.sup{background:#f3faf5;border-color:#bfe3cc}
 .banda .etq{display:block;color:var(--gris);font-size:.78rem}
 .banda .val{display:block;font-size:1.1rem;font-weight:700;margin-top:.2rem}
+.control{list-style:none;padding:0;margin:.4rem 0}
+.chk{display:flex;gap:.7rem;align-items:flex-start;padding:.65rem .8rem;border:1px solid var(--borde);border-radius:9px;margin-bottom:.5rem;animation:aparece .25s ease}
+.chk-ic{flex:0 0 1.6rem;height:1.6rem;width:1.6rem;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.9rem}
+.chk-txt small{color:var(--gris)}
+.chk.ok{background:#f3faf5;border-color:#bfe3cc}
+.chk.ok .chk-ic{background:var(--ok)}
+.chk.advertencia{background:#fff8ec;border-color:#f3dca6}
+.chk.advertencia .chk-ic{background:#d08700}
+.chk.error{background:#fdecea;border-color:#f5c6c0}
+.chk.error .chk-ic{background:var(--err)}
+.boton-grande{margin-top:1rem;width:100%;background:var(--ok);color:#fff;border:0;padding:.95rem;border-radius:9px;font-size:1.05rem;font-weight:700;cursor:pointer}
+.boton-grande:hover{background:#086a3f}
+@keyframes aparece{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
