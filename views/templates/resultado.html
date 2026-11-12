@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block titulo %}Resultado · Nota Técnica PGP{% endblock %}
+{% block contenido %}
+<section class="tarjeta">
+  <h2>Nota técnica — periodo {{ parametros.periodo }}</h2>
+
+  <div class="kpis">
+    <div class="kpi">
+      <span class="etq">Población objetivo</span>
+      <span class="val">{{ "{:,.0f}".format(poblacion) }}</span>
+    </div>
+    <div class="kpi destacado">
+      <span class="etq">Valor global del PGP (año)</span>
+      <span class="val">$ {{ "{:,.0f}".format(valor_pgp) }}</span>
+    </div>
+    <div class="kpi">
+      <span class="etq">Per cápita mensual</span>
+      <span class="val">$ {{ "{:,.0f}".format(per_capita) }}</span>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr><th>CUPS</th><th>Servicio</th><th>Atenciones proyectadas</th><th>Costo ajustado (COP)</th></tr>
+    </thead>
+    <tbody>
+      {% for fila in nota %}
+      <tr>
+        <td>{{ fila.cups }}</td>
+        <td>{{ fila.descripcion }}</td>
+        <td class="num">{{ "{:,.0f}".format(fila.atenciones_proyectadas) }}</td>
+        <td class="num">$ {{ "{:,.0f}".format(fila.costo_ajustado) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="acciones">
+    <a class="boton" href="{{ url_for('pgp.descargar') }}">Descargar Excel</a>
+    <a class="boton secundario" href="{{ url_for('pgp.index') }}">Nuevo cálculo</a>
+  </div>
+</section>
+{% endblock %}

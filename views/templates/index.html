@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block contenido %}
+<section class="tarjeta">
+  <h2>Cargar archivos</h2>
+  <p class="ayuda">Sube los tres Excel. Cada uno debe traer estas columnas:</p>
+  <ul class="ayuda">
+    <li><b>Afiliados:</b> grupo_etario, sexo, num_afiliados</li>
+    <li><b>RIPS:</b> cups, descripcion, grupo_etario, sexo, num_atenciones</li>
+    <li><b>Tarifario:</b> cups, costo_unitario</li>
+  </ul>
+
+  <form action="{{ url_for('pgp.calcular') }}" method="post" enctype="multipart/form-data">
+    <label>Afiliados (.xlsx)
+      <input type="file" name="afiliados" accept=".xlsx,.xls" required>
+    </label>
+    <label>RIPS / atenciones (.xlsx)
+      <input type="file" name="rips" accept=".xlsx,.xls" required>
+    </label>
+    <label>Tarifario (.xlsx)
+      <input type="file" name="tarifario" accept=".xlsx,.xls" required>
+    </label>
+
+    <h3>Parámetros del modelo</h3>
+    <div class="fila">
+      <label>Crecimiento población
+        <input type="number" name="crecimiento" value="0.03" step="0.01" min="0" max="1">
+      </label>
+      <label>IPC salud
+        <input type="number" name="ipc" value="0.05" step="0.01" min="0" max="1">
+      </label>
+      <label>Periodo
+        <input type="text" name="periodo" value="2027">
+      </label>
+    </div>
+
+    <button type="submit">Calcular nota técnica</button>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block titulo %}Nota Técnica PGP{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='estilo.css') }}">
+</head>
+<body>
+  <header>
+    <h1>Nota Técnica · PGP</h1>
+    <p class="sub">Pago Global Prospectivo — cálculo a partir de Excel</p>
+  </header>
+  <main>
+    {% with mensajes = get_flashed_messages(with_categories=true) %}
+      {% if mensajes %}
+        {% for categoria, texto in mensajes %}
+          <div class="alerta {{ categoria }}">{{ texto }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+    {% block contenido %}{% endblock %}
+  </main>
+  <footer>
+    <small>Prototipo — datos y parámetros bajo responsabilidad del usuario.</small>
+  </footer>
+</body>
+</html>
