@@ -20,6 +20,7 @@ from werkzeug.utils import secure_filename
 
 from models.pgp_model import NotaTecnicaPGP, ErrorDatosPGP
 from models.validador_pgp import ValidadorPGP
+from models.liquidacion_evento import LiquidacionEvento
 
 pgp_bp = Blueprint("pgp", __name__)
 
@@ -104,6 +105,33 @@ def calcular():
         return redirect(url_for("pgp.index"))
 
 
+@pgp_bp.route("/evento", methods=["POST"])
+def evento():
+    """Con los archivos ya validados (token), liquida por pago por EVENTO."""
+    salida = Path(current_app.config["OUTPUT_DIR"])
+    try:
+        _, ruta_rips, ruta_tar = _rutas_por_token(request.form.get("token", ""))
+
+        liq = LiquidacionEvento(periodo=request.form.get("periodo", "2027"))
+        resultado = liq.calcular(ruta_rips, ruta_tar)
+        liq.exportar_excel(resultado, salida / "liquidacion_evento.xlsx")
+
+        return render_template(
+            "evento.html",
+            resumen=resultado["resumen"].to_dict(orient="records"),
+            total=resultado["total"],
+            atenciones=resultado["atenciones"],
+            costo_promedio=resultado["costo_promedio"],
+            periodo=resultado["periodo"],
+        )
+    except ErrorDatosPGP as e:
+        flash(str(e), "error")
+        return redirect(url_for("pgp.index"))
+    except Exception as e:  # noqa: BLE001
+        flash(f"Error inesperado: {e}", "error")
+        return redirect(url_for("pgp.index"))
+
+
 @pgp_bp.route("/descargar")
 def descargar():
     """Entrega el Excel de la ultima nota tecnica generada."""
@@ -112,3 +140,13 @@ def descargar():
         flash("Aun no has generado ninguna nota tecnica.", "error")
         return redirect(url_for("pgp.index"))
     return send_file(archivo, as_attachment=True, download_name="nota_tecnica.xlsx")
+
+
+@pgp_bp.route("/descargar-evento")
+def descargar_evento():
+    """Entrega el Excel de la ultima liquidacion por evento."""
+    archivo = Path(current_app.config["OUTPUT_DIR"]) / "liquidacion_evento.xlsx"
+    if not archivo.exists():
+        flash("Aun no has generado ninguna liquidacion por evento.", "error")
+        return redirect(url_for("pgp.index"))
+    return send_file(archivo, as_attachment=True, download_name="liquidacion_evento.xlsx")

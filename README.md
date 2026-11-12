@@ -19,7 +19,8 @@ El proyecto separa responsabilidades en las tres capas del patrón
 pgp_app/
 ├── app.py                        # Arranque: crea la app Flask y registra el controlador
 ├── models/
-│   ├── pgp_model.py              # MODELO  -> lógica de negocio y cálculo (sin Flask)
+│   ├── pgp_model.py              # MODELO  -> nota técnica PGP (prospectivo)
+│   ├── liquidacion_evento.py     # MODELO  -> liquidación por evento (retrospectivo)
 │   └── validador_pgp.py          # MODELO  -> puntos de control sobre los Excel
 ├── controllers/
 │   └── pgp_controller.py         # CONTROLADOR -> rutas HTTP, valida y orquesta
@@ -86,6 +87,18 @@ habilita la generación si no hay errores:
 4. Si todo pasa, aparece el botón **Generar nota técnica para entregar**, que
    envía el token a `POST /calcular` (no hay que volver a subir los archivos).
 5. Si hay errores, se listan y la generación queda bloqueada hasta corregir.
+
+## Modalidades de pago
+
+Tras validar, puedes generar dos modalidades con los mismos archivos:
+
+| Modalidad | Qué calcula | Insumos | Fórmula |
+|-----------|-------------|---------|---------|
+| **PGP** (prospectivo) | Valor global anticipado + corredor de riesgo | afiliados, RIPS, tarifario | frecuencia × tarifa × población proyectada, con IPC |
+| **Evento** (retrospectivo) | Pago por cada atención prestada | RIPS, tarifario | `Σ atenciones × tarifa` |
+
+El PGP transfiere riesgo al prestador (banda de riesgo); el evento no. Comparar
+ambos valores sobre los mismos datos ayuda a sustentar la negociación.
 
 ## Formato de los Excel de entrada
 

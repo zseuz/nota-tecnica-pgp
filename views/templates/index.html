@@ -52,7 +52,11 @@
     <input type="hidden" name="ipc" id="g-ipc">
     <input type="hidden" name="umbral" id="g-umbral">
     <input type="hidden" name="periodo" id="g-periodo">
-    <button type="submit" class="boton-grande">✓ Generar nota técnica para entregar</button>
+    <button type="submit" class="boton-grande">✓ Generar nota técnica PGP</button>
+    <button type="submit" class="boton-grande evento" formaction="{{ url_for('pgp.evento') }}">
+      Generar liquidación por evento
+    </button>
+    <p class="ayuda" style="margin-top:.5rem">PGP: valor global prospectivo con corredor de riesgo. · Evento: pago por cada atención prestada (atenciones × tarifa).</p>
   </form>
 </section>
 

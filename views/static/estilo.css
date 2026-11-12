@@ -53,4 +53,6 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
 .chk.error .chk-ic{background:var(--err)}
 .boton-grande{margin-top:1rem;width:100%;background:var(--ok);color:#fff;border:0;padding:.95rem;border-radius:9px;font-size:1.05rem;font-weight:700;cursor:pointer}
 .boton-grande:hover{background:#086a3f}
+.boton-grande.evento{background:var(--azul);margin-top:.6rem}
+.boton-grande.evento:hover{background:var(--azul-osc)}
 @keyframes aparece{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
