@@ -53,6 +53,7 @@ def calcular():
         modelo = NotaTecnicaPGP(
             crecimiento_poblacion=float(request.form.get("crecimiento", 0.03)),
             ipc_salud=float(request.form.get("ipc", 0.05)),
+            umbral_riesgo=float(request.form.get("umbral", 0.10)),
             periodo=request.form.get("periodo", "2027"),
         )
         resultado = modelo.calcular(ruta_af, ruta_rips, ruta_tar)
@@ -65,6 +66,8 @@ def calcular():
             valor_pgp=resultado["valor_pgp"],
             poblacion=resultado["poblacion_objetivo"],
             per_capita=resultado["per_capita_mes"],
+            corredor=resultado["corredor_riesgo"],
+            indicadores=resultado["indicadores"].to_dict(orient="records"),
             parametros=resultado["parametros"],
         )
 

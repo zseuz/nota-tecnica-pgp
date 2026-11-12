@@ -33,3 +33,11 @@ table{width:100%;border-collapse:collapse;margin-top:.5rem;font-size:.92rem}
 th,td{padding:.55rem .6rem;border-bottom:1px solid var(--borde);text-align:left}
 th{background:var(--fondo);font-size:.82rem;text-transform:uppercase;letter-spacing:.3px;color:var(--gris)}
 td.num{text-align:right;font-variant-numeric:tabular-nums}
+.norma{color:var(--gris);font-weight:400;font-size:.8rem}
+.corredor{display:flex;gap:.6rem;flex-wrap:wrap;margin:.6rem 0 1.2rem}
+.banda{flex:1;min-width:150px;border:1px solid var(--borde);border-radius:10px;padding:.8rem;text-align:center}
+.banda.inf{background:#fff5f5;border-color:#f3c9c9}
+.banda.centro{background:#eef3ff;border-color:#c9d8ff}
+.banda.sup{background:#f3faf5;border-color:#bfe3cc}
+.banda .etq{display:block;color:var(--gris);font-size:.78rem}
+.banda .val{display:block;font-size:1.1rem;font-weight:700;margin-top:.2rem}

@@ -98,8 +98,30 @@ Las llaves de cruce son: `grupo_etario` + `sexo` (afiliados ↔ RIPS) y `cups`
 5. **Costo ajustado** = `costo_esperado × (1 + IPC_salud)`.
 6. **Valor global del PGP** = suma de todos los costos ajustados.
 7. **Per cápita mensual** = `valor_PGP / población_objetivo / 12`.
+8. **Corredor de riesgo** = banda `[valor × (1 − umbral), valor × (1 + umbral)]`.
 
-Parámetros configurables desde el formulario: crecimiento de población, IPC salud y periodo.
+Parámetros configurables desde el formulario: crecimiento de población, IPC salud,
+umbral del corredor de riesgo y periodo.
+
+## Alineación normativa (Colombia)
+
+El modelo refleja el contenido mínimo que exige la normatividad del Pago Global
+Prospectivo, para que la nota técnica sea válida como anexo del acuerdo de voluntades:
+
+| Exigencia normativa | Dónde se implementa |
+|---------------------|---------------------|
+| Nota técnica obligatoria como anexo del acuerdo (Decreto 441/2022) | `Nota_Tecnica` + `Detalle_calculo` |
+| Población, servicios con códigos CUPS, frecuencias y tarifas | insumos y cruce del modelo |
+| Mecanismo de ajuste de riesgo / corredor de riesgo (Decreto 441/2022) | `corredor_riesgo` + `evaluar_ejecucion()` |
+| Ajuste frente a desviaciones de la nota técnica (Resolución 2335/2023) | `evaluar_ejecucion()` (dentro/fuera del corredor) |
+| Indicadores de monitoreo (calidad, oportunidad, accesibilidad, seguridad, gestión) | `indicadores_monitoreo()` → hoja `Indicadores` |
+
+> Las metas de los indicadores y el ancho del corredor se pactan en cada acuerdo;
+> aquí vienen como plantilla y parámetro configurables.
+
+El método `evaluar_ejecucion(resultado, valor_ejecutado)` compara lo realmente
+ejecutado contra la banda y señala si aplica ajuste de riesgo; es la base para
+el seguimiento de la nota técnica durante la vigencia del contrato.
 
 ---
 

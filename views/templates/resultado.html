@@ -35,6 +35,40 @@
     </tbody>
   </table>
 
+  <h3>Corredor de riesgo <small class="norma">(Decreto 441/2022)</small></h3>
+  <p class="ayuda">Banda de ejecución dentro de la cual la IPS asume el riesgo; fuera de ella aplica ajuste de riesgo (Resolución 2335/2023).</p>
+  <div class="corredor">
+    <div class="banda inf">
+      <span class="etq">Banda inferior (−{{ "{:.0%}".format(corredor.umbral) }})</span>
+      <span class="val">$ {{ "{:,.0f}".format(corredor.banda_inferior) }}</span>
+    </div>
+    <div class="banda centro">
+      <span class="etq">Valor esperado</span>
+      <span class="val">$ {{ "{:,.0f}".format(corredor.valor_esperado) }}</span>
+    </div>
+    <div class="banda sup">
+      <span class="etq">Banda superior (+{{ "{:.0%}".format(corredor.umbral) }})</span>
+      <span class="val">$ {{ "{:,.0f}".format(corredor.banda_superior) }}</span>
+    </div>
+  </div>
+
+  <h3>Indicadores de monitoreo <small class="norma">(Resolución 2335/2023)</small></h3>
+  <table>
+    <thead>
+      <tr><th>Dimensión</th><th>Indicador</th><th>Fórmula</th><th>Meta ref.</th></tr>
+    </thead>
+    <tbody>
+      {% for ind in indicadores %}
+      <tr>
+        <td>{{ ind.dimension }}</td>
+        <td>{{ ind.indicador }}</td>
+        <td>{{ ind.formula }}</td>
+        <td>{{ ind.meta_referencia }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
   <div class="acciones">
     <a class="boton" href="{{ url_for('pgp.descargar') }}">Descargar Excel</a>
     <a class="boton secundario" href="{{ url_for('pgp.index') }}">Nuevo cálculo</a>
