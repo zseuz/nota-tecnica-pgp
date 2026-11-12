@@ -60,6 +60,18 @@ for cups, desc, frecs in servicios:
 df_rips = pd.DataFrame(filas_rips)
 df_rips.to_excel(DATA / "rips.xlsx", index=False)
 
+# --- facturacion.xlsx (misma informacion, con esquema de un consolidado de facturacion) ---
+# Sirve para probar el adaptador de ingesta 'facturacion'.
+df_fact = df_rips.rename(columns={
+    "cups": "codigo_servicio",
+    "descripcion": "descripcion_servicio",
+    "grupo_etario": "grupo_edad",
+    "sexo": "genero",
+    "num_atenciones": "cantidad",
+}).copy()
+df_fact["genero"] = df_fact["genero"].map({"F": "Femenino", "M": "Masculino"})
+df_fact.to_excel(DATA / "facturacion.xlsx", index=False)
+
 # --- tarifario.xlsx (costo unitario en COP) ---
 tarifas = {
     "890201": 42000, "890301": 78000, "902210": 18500,
@@ -71,6 +83,7 @@ df_tar = pd.DataFrame(
 df_tar.to_excel(DATA / "tarifario.xlsx", index=False)
 
 print("Generados en", DATA)
-print(" - afiliados.xlsx :", len(df_af), "filas |", df_af.num_afiliados.sum(), "afiliados")
-print(" - rips.xlsx      :", len(df_rips), "filas")
-print(" - tarifario.xlsx :", len(df_tar), "servicios")
+print(" - afiliados.xlsx   :", len(df_af), "filas |", df_af.num_afiliados.sum(), "afiliados")
+print(" - rips.xlsx        :", len(df_rips), "filas")
+print(" - facturacion.xlsx :", len(df_fact), "filas (fuente alterna)")
+print(" - tarifario.xlsx   :", len(df_tar), "servicios")

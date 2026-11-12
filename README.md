@@ -21,6 +21,7 @@ pgp_app/
 ├── models/
 │   ├── pgp_model.py              # MODELO  -> nota técnica PGP (prospectivo)
 │   ├── liquidacion_evento.py     # MODELO  -> liquidación por evento (retrospectivo)
+│   ├── ingesta.py                # MODELO  -> adaptadores de fuente (RIPS, facturación)
 │   └── validador_pgp.py          # MODELO  -> puntos de control sobre los Excel
 ├── controllers/
 │   └── pgp_controller.py         # CONTROLADOR -> rutas HTTP, valida y orquesta
@@ -87,6 +88,26 @@ habilita la generación si no hay errores:
 4. Si todo pasa, aparece el botón **Generar nota técnica para entregar**, que
    envía el token a `POST /calcular` (no hay que volver a subir los archivos).
 5. Si hay errores, se listan y la generación queda bloqueada hasta corregir.
+
+## Capa de ingesta (fuente-agnóstico)
+
+El cálculo está desacoplado del origen de los datos. Un **adaptador** normaliza
+la fuente de frecuencias a una tabla canónica y el resto del modelo nunca cambia:
+
+```
+cups, descripcion, grupo_etario, sexo, num_atenciones
+```
+
+Adaptadores incluidos (`models/ingesta.py`):
+
+| Fuente | Entrada esperada | Qué hace |
+|--------|------------------|----------|
+| `rips` | cups, descripcion, grupo_etario, sexo (+ num_atenciones opcional) | Consolida; si viene crudo (una fila por atención), cuenta |
+| `facturacion` | codigo_servicio, descripcion_servicio, grupo_edad, genero, cantidad | Renombra al canónico y normaliza el sexo (Femenino/Masculino → F/M) |
+
+En el formulario eliges la **fuente**; la ingesta corre como primer punto de
+control. Para soportar un origen nuevo (p. ej. autorizaciones) basta con agregar
+una clase adaptadora, sin tocar la nota técnica ni el evento.
 
 ## Modalidades de pago
 

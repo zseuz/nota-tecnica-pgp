@@ -21,6 +21,7 @@ from werkzeug.utils import secure_filename
 from models.pgp_model import NotaTecnicaPGP, ErrorDatosPGP
 from models.validador_pgp import ValidadorPGP
 from models.liquidacion_evento import LiquidacionEvento
+from models.ingesta import normalizar_fuente, ADAPTADORES
 
 pgp_bp = Blueprint("pgp", __name__)
 
@@ -51,12 +52,32 @@ def validar():
     token = uuid.uuid4().hex
     carpeta = Path(current_app.config["UPLOAD_DIR"]) / token
     carpeta.mkdir(parents=True, exist_ok=True)
-    for f in ARCHIVOS:
-        request.files[f].save(carpeta / f"{f}.xlsx")
+    request.files["afiliados"].save(carpeta / "afiliados.xlsx")
+    request.files["tarifario"].save(carpeta / "tarifario.xlsx")
+
+    # Capa de ingesta: normalizar la fuente de frecuencias a la tabla canonica
+    fuente = request.form.get("fuente", "rips")
+    origen = carpeta / "_fuente_frecuencias.xlsx"
+    request.files["rips"].save(origen)
+    try:
+        canon = normalizar_fuente(origen, fuente)
+        canon.to_excel(carpeta / "rips.xlsx", index=False)
+        ingesta = {
+            "punto": "Ingesta de la fuente",
+            "estado": "ok",
+            "detalle": f"Fuente '{ADAPTADORES[fuente]().nombre}' normalizada: "
+                       f"{len(canon)} filas, {int(canon['num_atenciones'].sum()):,} atenciones.",
+        }
+    except ErrorDatosPGP as e:
+        return jsonify({
+            "ok": False, "token": token,
+            "checkpoints": [{"punto": "Ingesta de la fuente", "estado": "error", "detalle": str(e)}],
+        })
 
     reporte = ValidadorPGP().validar(
         carpeta / "afiliados.xlsx", carpeta / "rips.xlsx", carpeta / "tarifario.xlsx"
     )
+    reporte["checkpoints"].insert(0, ingesta)
     reporte["token"] = token
     return jsonify(reporte)
 
